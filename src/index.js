@@ -1,9 +1,30 @@
 const express = require("express");
+const { graphqlHTTP } = require("express-graphql");
+const { buildSchema } = require("graphql");
 
-const app = express();
 const port = process.env.PORT || 4000;
 
-app.get("/", (req, res) => res.send("Hello World!!!"));
-app.listen(port, () =>
-  console.log(`Server running at http://localhost:${port}`)
+const typeDefs = buildSchema(`
+  type Query {
+    hello: String
+  }
+`);
+
+const resolvers = {
+  hello: () => "Hello world!",
+};
+
+const app = express();
+
+app.use(
+  "/graphql",
+  graphqlHTTP({
+    schema: typeDefs,
+    rootValue: resolvers,
+    graphiql: true,
+  })
+);
+
+app.listen({ port }, () =>
+  console.log(`GraphQL Server running at http://localhost:${port}/graphql`)
 );
