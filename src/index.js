@@ -1,8 +1,12 @@
 const express = require("express");
 const { graphqlHTTP } = require("express-graphql");
 const { buildSchema } = require("graphql");
+require("dotenv").config();
+const db = require("./db");
+const models = require("./models");
 
 const port = process.env.PORT || 4000;
+const DB_HOST = process.env.DB_HOST;
 
 let notes = [
   { id: "1", content: "This is a note", author: "Adam Scott" },
@@ -28,22 +32,22 @@ const typeDefs = buildSchema(`
 
 const resolvers = {
   hello: () => "Hello world!",
-  getAllNotes: () => notes,
-  getNote: (args) => {
-    return notes.find((note) => note.id === args.id);
+  getAllNotes: async () => {
+    return await models.Note.find();
   },
-  newNote: (args) => {
-    let noteValue = {
-      id: String(notes.length + 1),
+  getNote: async (args) => {
+    return await models.Note.findById(args.id);
+  },
+  newNote: async (args) => {
+    return await models.Note.create({
       content: args.content,
       author: "Adam Scott",
-    };
-    notes.push(noteValue);
-    return noteValue;
+    });
   },
 };
 
 const app = express();
+db.connect(DB_HOST);
 
 app.use(
   "/graphql",
